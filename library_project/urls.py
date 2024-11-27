@@ -26,5 +26,6 @@ urlpatterns = [
     path('fines', views.book_fines, name='book_fines'),
     path('issue/<int:id>', views.issue_book, name='issue_book'),
     path('return/<int:id>', views.return_book, name='return_book'),
+    path('pay/<int:id>', views.pay_overdue, name='pay_overdue'),
     path('admin/', admin.site.urls),
 ]
