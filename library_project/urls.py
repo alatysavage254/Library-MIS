@@ -34,5 +34,6 @@ urlpatterns = [
     path('bar-chart', views.bar_chart, name='bar_chart'),
     path('login', views.login_page, name='login'),
     path('logout', views.logout_page, name='logout'),
+    path('lost/book/<int:id>', views.lost_book, name='lost_book'),
     path('admin/', admin.site.urls),
 ]

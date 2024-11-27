@@ -25,7 +25,7 @@ def books_in_store(request):
 
 @login_required
 def borrowed_books(request):
-    borrowed = Transaction.objects.all()
+    borrowed = Transaction.objects.filter(status='BORROWED')
     return render(request, 'borrowed_books.html', {"borrowed_items": borrowed})
 
 @login_required
@@ -195,3 +195,12 @@ def login_page(request):
 def logout_page(request):
     logout(request)
     return redirect('login')
+
+@login_required
+def lost_book(request, id):
+    transactions = Transaction.objects.get(id=id)
+    transactions.status = 'LOST'
+    transactions.return_date = date.today()
+    transactions.save()
+    messages.error(request, 'Book registered as lost!')
+    return redirect('borrowed_books')
