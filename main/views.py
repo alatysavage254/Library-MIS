@@ -3,11 +3,11 @@ from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django_daraja.mpesa.core import MpesaClient
 
@@ -36,7 +36,7 @@ def book_fines(request):
 
 @login_required
 def issue_book(request, id):
-    book = Book.objects.get(pk=id)
+    book = get_object_or_404(Book, pk=id)
     students = Student.objects.all()
     if request.method == 'POST':
        student_id = request.POST['student_id']
@@ -51,7 +51,7 @@ def issue_book(request, id):
 
 @login_required
 def return_book(request, id):
-    transaction = Transaction.objects.get(pk=id)
+    transaction = get_object_or_404(Transaction, pk=id)
     transaction.return_date = date.today()
     transaction.status = 'RETURNED'
     transaction.save()
@@ -62,7 +62,7 @@ def return_book(request, id):
 
 @login_required
 def pay_overdue(request, id):
-    transaction = Transaction.objects.get(pk=id)
+    transaction = get_object_or_404(Transaction, pk=id)
     total = transaction.total_fine
     phone = transaction.student.phone
     cl = MpesaClient()
@@ -197,6 +197,7 @@ def logout_page(request):
     return redirect('login')
 
 @login_required
+@permission_required("main.lost_book", raise_exception=True)
 def lost_book(request, id):
     transactions = Transaction.objects.get(id=id)
     transactions.status = 'LOST'
