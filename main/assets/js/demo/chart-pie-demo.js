@@ -6,15 +6,6 @@ Chart.defaults.global.defaultFontColor = '#858796';
 var ctx = document.getElementById("myPieChart");
 var myPieChart = new Chart(ctx, {
   type: 'doughnut',
-  data: {
-    labels: ["Direct", "Referral", "Social"],
-    datasets: [{
-      data: [55, 30, 15],
-      backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-      hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
-      hoverBorderColor: "rgba(234, 236, 244, 1)",
-    }],
-  },
   options: {
     maintainAspectRatio: false,
     tooltips: {
@@ -33,3 +24,30 @@ var myPieChart = new Chart(ctx, {
     cutoutPercentage: 80,
   },
 });
+
+$(document).ready(function (){
+      $.ajax({
+      url: "/pie-chart",
+      type: "GET",
+      dataType: "json",
+      success: (jsonResponse) => {
+        console.log(jsonResponse)
+        const title = jsonResponse.title;
+        const labels = jsonResponse.data.labels;
+        const datasets = jsonResponse.data.datasets;
+        // Reset the current chart
+        myPieChart.data.datasets = [];
+        myPieChart.data.labels = [];
+        // Load new data into the chart
+        myPieChart.options.title.text = title;
+        myPieChart.options.title.display = true;
+        myPieChart.data.labels = labels;
+        datasets.forEach(dataset => {
+          myPieChart.data.datasets.push(dataset);
+        });
+        myPieChart.update();
+      },
+       error: () => console.log("Failed to fetch chart filter options!")
+     });
+});
+
