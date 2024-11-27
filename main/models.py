@@ -48,6 +48,7 @@ class Transaction(models.Model):
             amount = (self.return_date - self.expected_return_date).days * 10
             return amount
         return 0
+
     class Meta:
         verbose_name = 'Transaction'
         verbose_name_plural = 'Transactions'

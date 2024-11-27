@@ -390,7 +390,14 @@
 
             <!-- Begin Page Content -->
             <div class="container-fluid">
-
+                {% for message in messages %}
+                   <div class="card mb-4 py-3 border-left-primary">
+                                <div class="card-body">
+                                    {{message}}
+                                </div>
+                   </div>	
+                {% endfor %}
+                
                 <!-- Page Heading -->
                 {% block content %}
 
