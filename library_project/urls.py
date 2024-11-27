@@ -32,5 +32,7 @@ urlpatterns = [
     path('pie-chart', views.pie_chart, name='pie_chart'),
     path('line-chart', views.line_chart, name='line_chart'),
     path('bar-chart', views.bar_chart, name='bar_chart'),
+    path('login', views.login_page, name='login'),
+    path('logout', views.logout_page, name='logout'),
     path('admin/', admin.site.urls),
 ]
