@@ -84,8 +84,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'library_db',
-        'USER': 'root',
-        'PASSWORD': '',
+    'USER': 'django_user',
+    'PASSWORD': 'assworsdee6674A*',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -152,8 +152,8 @@ MPESA_ENVIRONMENT = 'sandbox'
 
 # Credentials for the daraja app
 
-MPESA_CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
-MPESA_CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
+MPESA_CONSUMER_KEY = "ARYM9ADDeoUDRWX5shF3K81ANt5rkddKBno0gdSMGS8rMPPQ"
+MPESA_CONSUMER_SECRET = "WcOl24MPETTH4QHLvIrGx1qqDFItwrUA5FQ6zGDS9S4CIZr9X76ND58mScUxq4Az"
 
 #Shortcode to use for transactions. For sandbox  use the Shortcode 1 provided on test credentials page
 
@@ -161,7 +161,7 @@ MPESA_SHORTCODE = '174379'
 
 # Shortcode to use for Lipa na MPESA Online (MPESA Express) transactions
 # This is only used on sandbox, do not set this variable in production
-# For sandbox use the Lipa na MPESA Online Shorcode provided on test credentials page
+# Standard M-Pesa sandbox shortcode for testing
 
 MPESA_EXPRESS_SHORTCODE = '174379'
 
@@ -176,7 +176,7 @@ MPESA_SHORTCODE_TYPE = 'paybill'
 # Sandbox passkey is available on test credentials page
 # Production passkey is sent via email once you go live
 
-MPESA_PASSKEY =  os.getenv("MPESA_PASSKEY")
+MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
 
 # Username for initiator (to be used in B2C, B2B, AccountBalance and TransactionStatusQuery Transactions)
 
