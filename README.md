@@ -208,7 +208,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support or questions, please contact:
-- Email: your-email@example.com
+- Email: tooryan18@gmail.com
 - GitHub Issues: [Create an issue](https://github.com/alatysavage254/Library-MIS/issues)
 
 ## Changelog
