@@ -80,16 +80,26 @@ WSGI_APPLICATION = 'library_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'library_db',
-    'USER': 'django_user',
-    'PASSWORD': 'assworsdee6674A*',
-        'HOST': 'localhost',
-        'PORT': '3306',
+# Default to SQLite for local/dev to avoid MySQL client dependency. Use MySQL
+# only when explicitly requested via env var DB_BACKEND=mysql
+if os.environ.get('DB_BACKEND', 'sqlite').lower() == 'mysql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_DATABASE', 'library_db'),
+            'USER': os.environ.get('MYSQL_USER', 'django_user'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'assworsdee6674A*'),
+            'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
+            'PORT': os.environ.get('MYSQL_PORT', '3306'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -146,6 +156,9 @@ MESSAGE_TAGS = {
 }
 
 LOGIN_URL = 'login'
+
+# Development convenience: default password for auto-created superuser
+ADMIN_DEFAULT_PASSWORD = os.environ.get('ADMIN_DEFAULT_PASSWORD', 'adminpass')
 
 
 MPESA_ENVIRONMENT = 'sandbox'

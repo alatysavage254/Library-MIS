@@ -81,24 +81,26 @@ def pay_overdue(request, id):
         messages.success(request, f'Your payment was triggered successfully')
     return redirect('book_fines')
 
-@login_required
 @csrf_exempt
 def callback(request):
+    # M-Pesa callback should not require authentication
     resp = json.loads(request.body)
     data = resp['Body']['stkCallback']
-    if data["ResultCode"] == "0":
-        m_id = data["MerchantRequestID"]
-        c_id = data["CheckoutRequestID"]
-        code =""
-        item = data["CallbackMetadata"]["Item"]
-        for i in item:
-            name = i["Name"]
-            if name == "MpesaReceiptNumber":
-                code= i["Value"]
-        transaction = Transaction.objects.get(merchant_request_id=m_id, checkout_request_id=c_id)
-        transaction.code = code
-        transaction.status = "COMPLETED"
-        transaction.save()
+    if str(data.get("ResultCode")) == "0":
+        merchant_request_id = data.get("MerchantRequestID")
+        checkout_request_id = data.get("CheckoutRequestID")
+        receipt_code = ""
+        for item in data.get("CallbackMetadata", {}).get("Item", []):
+            if item.get("Name") == "MpesaReceiptNumber":
+                receipt_code = item.get("Value", "")
+                break
+        try:
+            payment = Payment.objects.get(merchant_request_id=merchant_request_id, checkout_request_id=checkout_request_id)
+            payment.code = receipt_code
+            payment.status = "COMPLETED"
+            payment.save()
+        except Payment.DoesNotExist:
+            pass
     return HttpResponse("OK")
 
 @login_required
