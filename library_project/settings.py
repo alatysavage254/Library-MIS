@@ -22,7 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zn!x$y9u0hh+g8xb!#+oa3*h&u^cn041^2%b_gws0l-laxtw8n'
+# Prefer environment variable in non-dev environments
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-zn!x$y9u0hh+g8xb!#+oa3*h&u^cn041^2%b_gws0l-laxtw8n'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -161,43 +165,40 @@ LOGIN_URL = 'login'
 ADMIN_DEFAULT_PASSWORD = os.environ.get('ADMIN_DEFAULT_PASSWORD', 'adminpass')
 
 
-MPESA_ENVIRONMENT = 'sandbox'
+MPESA_ENVIRONMENT = os.environ.get('MPESA_ENVIRONMENT', 'sandbox')
 
-# Credentials for the daraja app
+# Credentials for the daraja app (use environment variables in production)
+MPESA_CONSUMER_KEY = os.environ.get(
+    'MPESA_CONSUMER_KEY',
+    'ARYM9ADDeoUDRWX5shF3K81ANt5rkddKBno0gdSMGS8rMPPQ'
+)
+MPESA_CONSUMER_SECRET = os.environ.get(
+    'MPESA_CONSUMER_SECRET',
+    'WcOl24MPETTH4QHLvIrGx1qqDFItwrUA5FQ6zGDS9S4CIZr9X76ND58mScUxq4Az'
+)
 
-MPESA_CONSUMER_KEY = "ARYM9ADDeoUDRWX5shF3K81ANt5rkddKBno0gdSMGS8rMPPQ"
-MPESA_CONSUMER_SECRET = "WcOl24MPETTH4QHLvIrGx1qqDFItwrUA5FQ6zGDS9S4CIZr9X76ND58mScUxq4Az"
+# Shortcodes
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '174379')
+MPESA_EXPRESS_SHORTCODE = os.environ.get('MPESA_EXPRESS_SHORTCODE', '174379')
 
-#Shortcode to use for transactions. For sandbox  use the Shortcode 1 provided on test credentials page
-
-MPESA_SHORTCODE = '174379'
-
-# Shortcode to use for Lipa na MPESA Online (MPESA Express) transactions
-# This is only used on sandbox, do not set this variable in production
-# Standard M-Pesa sandbox shortcode for testing
-
-MPESA_EXPRESS_SHORTCODE = '174379'
-
-# Type of shortcode
-# Possible values:
-# - paybill (For Paybill)
-# - till_number (For Buy Goods Till Number)
-
-MPESA_SHORTCODE_TYPE = 'paybill'
+# Type of shortcode: 'paybill' or 'till_number'
+MPESA_SHORTCODE_TYPE = os.environ.get('MPESA_SHORTCODE_TYPE', 'paybill')
 
 # Lipa na MPESA Online passkey
-# Sandbox passkey is available on test credentials page
-# Production passkey is sent via email once you go live
+MPESA_PASSKEY = os.environ.get(
+    'MPESA_PASSKEY',
+    'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+)
 
-MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+# Initiator credentials (B2C/B2B)
+MPESA_INITIATOR_USERNAME = os.environ.get('MPESA_INITIATOR_USERNAME', 'initiator_username')
+MPESA_INITIATOR_SECURITY_CREDENTIAL = os.environ.get('MPESA_INITIATOR_SECURITY_CREDENTIAL', 'initiator_security_credential')
 
-# Username for initiator (to be used in B2C, B2B, AccountBalance and TransactionStatusQuery Transactions)
-
-MPESA_INITIATOR_USERNAME = 'initiator_username'
-
-# Plaintext password for initiator (to be used in B2C, B2B, AccountBalance and TransactionStatusQuery Transactions)
-
-MPESA_INITIATOR_SECURITY_CREDENTIAL = 'initiator_security_credential'
+# Callback URL used by STK push
+MPESA_CALLBACK_URL = os.environ.get(
+    'MPESA_CALLBACK_URL',
+    'http://localhost:8000/handle/payment/transactions'
+)
 
 #pip install django-daraja
 #pip install mysqlclient
