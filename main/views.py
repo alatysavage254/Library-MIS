@@ -1,5 +1,6 @@
 import json
 from datetime import date, timedelta
+from django.utils import timezone
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -66,11 +67,12 @@ def pay_overdue(request, id):
     total = transaction.total_fine
     phone = transaction.student.phone
     cl = MpesaClient()
-    phone_number = '0723740215'
-    amount = 1
+    phone_number = phone
+    amount = max(total, 1)
     account_reference = transaction.student.adm_no
     transaction_desc = 'Fines'
-    callback_url = 'https://mature-octopus-causal.ngrok-free.app/handle/payment/transactions'
+    from django.conf import settings
+    callback_url = settings.MPESA_CALLBACK_URL
     response = cl.stk_push(phone_number, amount, account_reference, transaction_desc, callback_url)
     if response.response_code == "0":
         payment= Payment.objects.create(transaction=transaction,
@@ -105,7 +107,8 @@ def callback(request):
 
 @login_required
 def pie_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    current_year = timezone.now().year
+    transactions = Transaction.objects.filter(created_at__year=current_year)
     returned = transactions.filter(status='RETURNED').count()
     lost = transactions.filter(status='LOST').count()
     borrowed = transactions.filter(status='BORROWED').count()
@@ -124,7 +127,8 @@ def pie_chart(request):
 
 @login_required
 def line_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    current_year = timezone.now().year
+    transactions = Transaction.objects.filter(created_at__year=current_year)
     grouped  = transactions.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
     numbers = []
     months = []
@@ -157,14 +161,14 @@ def line_chart(request):
 
 @login_required
 def bar_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    current_year = timezone.now().year
+    transactions = Transaction.objects.filter(created_at__year=current_year)
     grouped  = transactions.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
     numbers = []
     months = []
     for i in grouped:
         numbers.append(i['count'])
         months.append(i['month'].strftime('%b'))
-    print(months)
     return JsonResponse({
         "title": "Transactions Grouped By Month",
         "data": {
@@ -199,7 +203,7 @@ def logout_page(request):
     return redirect('login')
 
 @login_required
-@permission_required("main.lost_book", raise_exception=True)
+@permission_required("main.change_transaction", raise_exception=True)
 def lost_book(request, id):
     transactions = Transaction.objects.get(id=id)
     transactions.status = 'LOST'
