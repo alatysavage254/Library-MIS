@@ -26,15 +26,9 @@ def get_access_token():
         print(f"\nGetting access token from: {api_URL}")
         print(f"Using consumer key: {consumer_key[:10]}...")
         
-        # Use specific headers for token request
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        
         r = requests.get(
             api_URL,
             auth=HTTPBasicAuth(consumer_key, consumer_secret),
-            headers=headers,
             verify=True
         )
         
@@ -42,8 +36,12 @@ def get_access_token():
         print(f"Access token response: {r.text}")
         
         if r.status_code == 200:
-            token = r.json().get('access_token', '').strip()
+            response_data = r.json()
+            token = response_data.get('access_token', '')
+            # Clean the token thoroughly
+            token = token.strip().replace('\n', '').replace('\r', '').replace(' ', '')
             print(f"Extracted token: {token[:10]}...")
+            print(f"Token length: {len(token)}")
             return token
         else:
             print(f"Error getting access token. Status: {r.status_code}, Response: {r.text}")
@@ -124,14 +122,19 @@ def pay_overdue(request, id):
     try:
         transaction = get_object_or_404(Transaction, pk=id)
         
-        # For testing, use the test phone number
-        phone = "0746836004"  # Test M-Pesa number
+        # Get phone number from POST request or use test number
+        phone = request.POST.get('phone', '').strip()
         
-        # Format phone number
-        phone_number = '254' + phone.lstrip('0')
+        if phone:
+            # User provided a phone number
+            phone_number = '254' + phone.lstrip('0')
+        else:
+            # Use official Safaricom sandbox test number
+            phone_number = "254708374149"
         
         # Payment details
-        amount = int(transaction.total_fine)
+        # For testing, use 1 shilling instead of actual fine amount
+        amount = 1  # Test amount - change to int(transaction.total_fine) for production
         account_reference = transaction.student.adm_no
         transaction_desc = f'Library Fine - {account_reference}'
         
@@ -158,23 +161,18 @@ def pay_overdue(request, id):
             timestamp
         )
         
-        # Prepare the request
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json',
-        }
-        
+        # Prepare the payload - ensure all values are properly formatted
         payload = {
-            'BusinessShortCode': settings.MPESA_EXPRESS_SHORTCODE,
+            'BusinessShortCode': str(settings.MPESA_EXPRESS_SHORTCODE).strip(),
             'Password': password,
             'Timestamp': timestamp,
             'TransactionType': 'CustomerPayBillOnline',
-            'Amount': amount,
+            'Amount': int(amount),
             'PartyA': phone_number,
-            'PartyB': settings.MPESA_EXPRESS_SHORTCODE,
+            'PartyB': str(settings.MPESA_EXPRESS_SHORTCODE).strip(),
             'PhoneNumber': phone_number,
             'CallBackURL': f'{settings.NGROK_URL}/handle/payment/transactions',
-            'AccountReference': account_reference,
+            'AccountReference': str(account_reference).strip(),
             'TransactionDesc': transaction_desc
         }
         
@@ -184,36 +182,29 @@ def pay_overdue(request, id):
         # Make the request
         api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
         
-        # Ensure headers are properly formatted
+        # Prepare headers - ensure no extra whitespace in token
         headers = {
-            'Authorization': 'Bearer {}'.format(access_token.strip()),
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json'
         }
         
         print(f"\n=== Request Details ===")
         print(f"URL: {api_url}")
-        print(f"Headers: {headers}")
-        print(f"Access Token Used: {access_token}")
+        print(f"Authorization Header: Bearer {access_token[:10]}...{access_token[-10:]}")
+        print(f"Token Length: {len(access_token)}")
         
         try:
-            # First verify the API is reachable
-            test_response = requests.get('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', 
-                                      auth=HTTPBasicAuth(settings.MPESA_CONSUMER_KEY, settings.MPESA_CONSUMER_SECRET))
-            print(f"\nAPI Connectivity Test Response: {test_response.status_code}")
-            
-            # Now make the actual request
+            # Make the actual request
             response = requests.post(
                 api_url,
                 json=payload,
                 headers=headers,
                 verify=True,
-                timeout=30  # Set a timeout
+                timeout=30
             )
             
             print(f"\n=== Raw Response ===")
             print(f"Status Code: {response.status_code}")
-            print(f"Headers: {dict(response.headers)}")
             print(f"Body: {response.text}")
             
         except requests.exceptions.RequestException as e:
