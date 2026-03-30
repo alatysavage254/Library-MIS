@@ -333,7 +333,7 @@ def callback(request):
 
 @login_required
 def pie_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    transactions = Transaction.objects.all()
     returned = transactions.filter(status='RETURNED').count()
     lost = transactions.filter(status='LOST').count()
     borrowed = transactions.filter(status='BORROWED').count()
@@ -342,7 +342,7 @@ def pie_chart(request):
         "data": {
             "labels": ["Returned", "Borrowed", "Lost"],
             "datasets": [{
-                "data": [returned, lost, borrowed],
+                "data": [returned, borrowed, lost],
                 "backgroundColor": ['#4e73df', '#1cc88a', '#36b9cc'],
                 "hoverBackgroundColor": ['#2e59d9', '#17a673', '#2c9faf'],
                 "hoverBorderColor": "rgba(234, 236, 244, 1)",
@@ -352,7 +352,7 @@ def pie_chart(request):
 
 @login_required
 def line_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    transactions = Transaction.objects.all()
     grouped  = transactions.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
     numbers = []
     months = []
@@ -385,7 +385,7 @@ def line_chart(request):
 
 @login_required
 def bar_chart(request):
-    transactions = Transaction.objects.filter(created_at__year=2024)
+    transactions = Transaction.objects.all()
     grouped  = transactions.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
     numbers = []
     months = []

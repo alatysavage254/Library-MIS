@@ -90,39 +90,68 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f'Created student: {student.name}')
 
-        # Create some transactions
+        # Create transactions spread across the full year
         self.stdout.write('Creating transactions...')
         statuses = ['BORROWED', 'RETURNED', 'LOST']
         
-        for i in range(20):  # Create 20 random transactions
-            book = random.choice(books)
-            student = random.choice(students)
-            status = random.choice(statuses)
+        # Create transactions for each month of 2026
+        transaction_count = 0
+        current_year = datetime.now().year
+        
+        for month in range(1, 13):  # All 12 months
+            # Create 15-25 transactions per month for variety
+            num_transactions = random.randint(15, 25)
             
-            # Random dates
-            start_date = datetime.now() - timedelta(days=random.randint(1, 60))
-            expected_return = start_date + timedelta(days=14)  # 2 weeks loan period
+            for i in range(num_transactions):
+                book = random.choice(books)
+                student = random.choice(students)
+                
+                # Weight the statuses to make it more realistic
+                # 60% returned, 30% borrowed, 10% lost
+                rand = random.random()
+                if rand < 0.6:
+                    status = 'RETURNED'
+                elif rand < 0.9:
+                    status = 'BORROWED'
+                else:
+                    status = 'LOST'
+                
+                # Random day in the month
+                day = random.randint(1, 28)  # Use 28 to avoid month-end issues
+                start_date = datetime(current_year, month, day, 
+                                     random.randint(8, 17),  # Random hour
+                                     random.randint(0, 59))  # Random minute
+                
+                expected_return = start_date + timedelta(days=14)  # 2 weeks loan period
+                
+                return_date = None
+                if status == 'RETURNED':
+                    # Some returned on time, some late
+                    return_date = expected_return + timedelta(days=random.randint(-3, 10))
+                elif status == 'LOST':
+                    return_date = expected_return + timedelta(days=random.randint(15, 30))
+                
+                # Create transaction and manually update created_at
+                transaction = Transaction.objects.create(
+                    book=book,
+                    student=student,
+                    status=status,
+                    expected_return_date=expected_return.date(),
+                    return_date=return_date.date() if return_date else None,
+                )
+                
+                # Update created_at manually since auto_now_add prevents setting it
+                Transaction.objects.filter(id=transaction.id).update(
+                    created_at=start_date,
+                    updated_at=start_date
+                )
+                
+                transaction_count += 1
             
-            return_date = None
-            if status == 'RETURNED':
-                # Some returned on time, some late
-                return_date = expected_return + timedelta(days=random.randint(-3, 10))
-            elif status == 'LOST':
-                return_date = expected_return + timedelta(days=random.randint(15, 30))
-            
-            transaction = Transaction.objects.create(
-                book=book,
-                student=student,
-                status=status,
-                expected_return_date=expected_return.date(),
-                return_date=return_date.date() if return_date else None,
-                created_at=start_date
-            )
-            
-            self.stdout.write(f'Created transaction: {book.title} -> {student.name} ({status})')
+            self.stdout.write(f'Created {num_transactions} transactions for {datetime(current_year, month, 1).strftime("%B %Y")}')
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'Successfully created {len(books)} books, {len(students)} students, and 20 transactions!'
+                f'Successfully created {len(books)} books, {len(students)} students, and {transaction_count} transactions!'
             )
         )
